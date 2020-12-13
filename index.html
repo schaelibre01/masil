@@ -1,0 +1,1014 @@
+<!Doctype html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>If Covid is None : 미리 준비하는 당신의 나들이</title>
+    <!-- JQuery를 import 합니다 -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.2/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.2/addons/p5.dom.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css"/>
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+    <meta charset="utf-8" />
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sunflower:wght@300&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+    <style type="text/css">
+        div.question-box {
+            margin: 10px 0 20px 0;
+        }
+
+        table {
+            border: 1px solid;
+            border-collapse: collapse;
+        }
+
+        td,
+        th {
+            padding: 10px;
+            border: 1px solid;
+        }
+        .subtitle {
+            font-size : 40px;
+            font-family: 'Do Hyeon', sans-serif;
+        }
+        .description {
+            font-size : 25px;
+            font-family: 'Sunflower', sans-serif;
+        }
+
+        .chart {
+            width : 700px;
+            display : flex;
+            flex-direction : row;
+            align-items : flex-start;
+            justify-content : space-around;
+            margin-right : 30px
+        }
+        .good {
+            background-color: green;
+            color : white;
+            font-weight: bold;
+         }
+         .bad {
+            background-color :red;
+            color : white;
+            font-weight : bold;
+         }
+
+         .header {
+            background-image : url('https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2F20141007_146%2Fjjs2865_14126846648467tQKv_JPEG%2F%25BE%25F0%25C1%25A6%25B3%25AA_%25B1%25A4%25C8%25AD%25B9%25AE.jpg&type=sc960_832');
+            height : 300px;
+            width : 100%;
+            color : white;
+            display : flex;
+            justify-content : center;
+            align-items : center;
+            font-size : 80px;
+         }
+         .seoul {
+            margin : 0 auto;
+            display : flex;
+            justify-content : center;
+            align-items : center;
+         }
+
+         canvas {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin : 0 auto;
+          }
+         .question-box {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                margin : 0 auto;
+         }
+
+    </style>
+
+    <script>
+        $(document).ready(function () {
+            showMiseInfo();
+            showRainInfo();
+            showTrafficInfo();
+        });
+
+        setTimeout(showIndex,2000);
+
+        function hideData() {
+            if ($('#rain-info').css('display') == 'table-row-group') {
+                $('.realData').hide();
+                $('#openClose').text('차트 열기');
+            } else {
+                // 아니면(눈에 보이지 않으면) post-box를 펴라
+                $('.realData').show();
+                // 다시 버튼을 클릭하면, 박스 닫기를 할 수 있게 텍스트 바꿔두기
+                $('#openClose').text('차트 닫기');
+            }
+        }
+
+
+        function showMiseInfo() {
+            $('#bike-info').empty();
+            $.ajax({
+                type: "GET",
+                url: "http://openapi.seoul.go.kr:8088/6d4d776b466c656533356a4b4b5872/json/RealtimeCityAir/1/99",
+
+
+                success: function (response) {
+                    let rows = response["RealtimeCityAir"]["row"];
+                    let newRow = []
+                    for (let i = 0; i < rows.length; i++) {
+                        if(rows[i]['MSRSTE_NM'].includes("동작구")!=true & rows[i]['MSRSTE_NM'].includes("금천구")!=true){
+                            newRow.push(rows[i])
+                        }
+                    }
+                    for (let i = 0; i < newRow.length; i++) {
+                        let guName = newRow[i]['MSRSTE_NM'];
+                        let mise = newRow[i]['PM10'];
+                        let choMise = newRow[i]['PM25'];
+                        let tempHtml = `<tr>
+                                            <td>${guName}</td>
+                                            <td id="mise${i}">${mise}</td>
+                                            <td id = "chomise${i}">${choMise}</td>
+                                        </tr>`
+                        $('#bike-info').append(tempHtml);
+                    }
+                }
+            })
+        }
+
+        function showRainInfo() {
+            $('#rain-info').empty();
+            $.ajax({
+                type: "GET",
+                url: "http://openapi.seoul.go.kr:8088/46467a437573636838366f4c626264/json/ListRainfallService/1/43/",
+                data: {},
+                success: function (response) {
+                    let rows = response["ListRainfallService"]["row"];
+<!--                    let newRows = []-->
+<!--                    for (let i=0; i <rows.length; i++) {-->
+<!--                        if (rows[i]['RAINGAUGE_NAME'].includes("구청")==true) || rows[i]['RAINGAUGE_NAME']=='서소문') {-->
+<!--                            newRows.push(rows[i])-->
+<!--                        }-->
+<!--                    }-->
+                    let order = ['중구청', '종로구청', '용산구청', '은평구청',
+                    '서소문', '마포구청', '광진구청', '성동구청', '중랑구청',
+                    '동대문구청', '성북구청', '도봉구청', '강북구청', '노원구청',
+                    '강서구청', '구로구청', '영등포구청', '관악구청', '양천구청',
+                    '강남구청', '서초구청', '송파구청', '강동구청']
+                    let newRows2 = []
+                    for(let i =0; i<order.length; i++) {
+                        let counter = 0;
+                        for(let j=0;j<rows.length; j++){
+                            if (rows[j]['RAINGAUGE_NAME'] == order[i]) {
+                                newRows2.push(rows[j])
+                                counter +=1;
+                                break
+                            }
+                        }
+                        if (counter==0) {
+                            newRows2.push({RAINGAUGE_CODE: 1501,
+                            RAINGAUGE_NAME: "업데이트 안 됨",
+                            GU_CODE: 200,
+                            GU_NAME: "업데이트 안 됨",
+                            RAINFALL10: "1000",
+                            RECEIVE_TIME: "2020-12-13 18:59"})
+                        }
+                    }
+                    console.log(newRows2);
+                    for (let i=0; i<newRows2.length; i++) {
+                        let rainFall = newRows2[i]['RAINFALL10']
+                        let tempHtml = `<tr>
+                                            <td id='rain${i}'>${rainFall}</td>
+                                        </tr>`
+                        $('#rain-info').append(tempHtml);
+                    }
+                }
+            })
+        }
+    function showTrafficInfo() {
+            $('#traffic-info').empty();
+            let accident = [179.2,178.9,128.1, 74.3, 109.2, 110.6, 82.8,
+            86.3, 118.2, 128.7, 103.5,76.6,130,102,81.9,95.5,154.1,94.3,
+            89.4,147.4,124.9,110.4,90.5]
+            for (let i=0; i<accident.length; i++) {
+                let accident_rate = accident[i]
+                let tempHtml = `<tr>
+                                            <td id= 'accident${i}'>${accident_rate}</td>
+                                        </tr>`
+                        $('#traffic-info').append(tempHtml);
+            }
+     }
+     function showIndex() {
+        $('#index-info').empty();
+        for (let i=0; i<23;i++) {
+            let index=0
+            let miseIndex = Number($(`#mise${i}`).html())
+            let chomiseIndex = Number($(`#chomise${i}`).html())
+            let rainIndex = Number($(`#rain${i}`).html())
+            let accidentIndex = $(`#accident${i}`).val()
+            if (miseIndex <20) {
+                index +=1
+            }
+
+            if (chomiseIndex <12) {
+                index +=1
+            }
+
+            if (rainIndex ==0) {
+                index +=1
+            }
+
+            if (accidentIndex <100) {
+                index +=1
+            }
+            let tempHTML = '';
+            if (index==4 || index==3) {
+                tempHtml = `<tr class = 'good'>
+                                   <td id= 'index_num${i}'>${index}</td>
+                                </tr>`
+            } else if(index==0 || index== 1) {
+                tempHtml = `<tr class = 'bad'>
+                                           <td id= 'index_num${i}'>${index}</td>
+                                        </tr>`
+            } else {
+                tempHtml = `<tr class = 'soso'>
+                                       <td id= 'index_num${i}'>${index}</td>
+                                    </tr>`
+            }
+
+            $('#index-info').append(tempHtml);
+        }
+     }
+    </script>
+    <script>
+                let img;
+                let reko;
+                function preload() {
+                    reko = loadFont('assets/reko.otf');
+                }
+                function setup() {
+                    var canvas = createCanvas(1500, 1000);
+                    canvas.parent('seoul');
+                    background(255);
+                    img = loadImage('assets/seoul.jpg');
+
+
+                }
+                function draw() {
+                    image(img,0,0,1500,1000);
+
+                    if($('#index_num0').text()=='1' || $('#index_num0').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num0').text()=='4' || $('#index_num0').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(757,513,30,30);
+
+                    if($('#index_num1').text()=='1' || $('#index_num1').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num1').text()=='4' || $('#index_num1').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(721,432,30,30);
+
+                    if($('#index_num2').text()=='1' || $('#index_num2').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num2').text()=='4' || $('#index_num2').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(724,590,30,30);
+
+                    if($('#index_num3').text()=='1' || $('#index_num3').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num3').text()=='4' || $('#index_num3').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(558,322,30,30);
+
+                    if($('#index_num4').text()=='1' || $('#index_num4').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num4').text()=='4' || $('#index_num4').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(600,457,30,30);
+
+                    if($('#index_num5').text()=='1' || $('#index_num5').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num5').text()=='4' || $('#index_num5').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(498,519,30,30);
+
+                    if($('#index_num6').text()=='1' || $('#index_num6').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num6').text()=='4' || $('#index_num6').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(1062,555,30,30);
+
+                    if($('#index_num7').text()=='1' || $('#index_num7').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num7').text()=='4' || $('#index_num7').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(915,532,30,30);
+
+                    if($('#index_num8').text()=='1' || $('#index_num8').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num8').text()=='4' || $('#index_num8').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(1055,389,30,30);
+
+                    if($('#index_num9').text()=='1' || $('#index_num9').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num9').text()=='4' || $('#index_num9').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(953,443,30,30);
+
+                    if($('#index_num10').text()=='1' || $('#index_num10').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num10').text()=='4' || $('#index_num10').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(854,388,30,30);
+
+                    if($('#index_num11').text()=='1' || $('#index_num11').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num11').text()=='4' || $('#index_num11').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(880,152,30,30);
+
+                    if($('#index_num12').text()=='1' || $('#index_num12').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num12').text()=='4' || $('#index_num12').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(815,255,30,30);
+
+                    if($('#index_num13').text()=='1' || $('#index_num13').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num13').text()=='4' || $('#index_num13').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(1024,243,30,30);
+
+                    if($('#index_num14').text()=='1' || $('#index_num14').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num14').text()=='4' || $('#index_num14').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(241,511,30,30);
+
+                    if($('#index_num15').text()=='1' || $('#index_num15').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num15').text()=='4' || $('#index_num15').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(312,722,30,30);
+
+                    if($('#index_num16').text()=='1' || $('#index_num16').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num16').text()=='4' || $('#index_num16').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(509,643,30,30);
+
+                    if($('#index_num17').text()=='1' || $('#index_num17').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num17').text()=='4' || $('#index_num17').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(623,818,30,30);
+
+                    if($('#index_num18').text()=='1' || $('#index_num18').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num18').text()=='4' || $('#index_num18').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(338,642,30,30);
+
+                    if($('#index_num19').text()=='1' || $('#index_num19').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num19').text()=='4' || $('#index_num19').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(983,736,30,30);
+
+                    if($('#index_num20').text()=='1' || $('#index_num20').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num20').text()=='4' || $('#index_num20').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(827,758,30,30);
+
+                    if($('#index_num21').text()=='1' || $('#index_num21').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num21').text()=='4' || $('#index_num21').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(1151,694,30,30);
+
+                    if($('#index_num22').text()=='1' || $('#index_num22').text()=='0') {
+                        fill(255,0,0);
+                    } else if ($('#index_num22').text()=='4' || $('#index_num22').text()=='3') {
+                        fill(0,255,0);
+                    } else {
+                        fill(0);
+                    }
+                    ellipse(1231,541,30,30);
+
+
+                    if(mouseX > 742 & mouseX < 772 & mouseY > 498 & mouseY < 528) {
+                        fill(255);
+                        ellipse(757,513,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 중구의 나들이 지수는', 95,105);
+                        if ($('#index_num0').text()=='4' || $('#index_num0').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num0').text()=='1' || $('#index_num0').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+                    } else if (mouseX > 706 & mouseX < 736 & mouseY > 417 & mouseY < 447) {
+                        fill(255);
+                        ellipse(721,432,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 종로구의 나들이 지수는', 95,105);
+                        if ($('#index_num1').text()=='4' || $('#index_num1').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num1').text()=='1' || $('#index_num1').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+                    } else if (mouseX > 709 & mouseX < 739 & mouseY > 575 & mouseY < 605) {
+                        fill(255);
+                        ellipse(724,590,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 용산구의 나들이 지수는', 95,105);
+                        if ($('#index_num2').text()=='4' || $('#index_num2').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num2').text()=='1' || $('#index_num2').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+                    } else if (mouseX > 543 & mouseX < 579 & mouseY > 307 & mouseY < 337){
+                        fill(255);
+                        ellipse(558,322,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 은평구의 나들이 지수는', 95,105);
+                        if ($('#index_num3').text()=='4' || $('#index_num3').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num3').text()=='1' || $('#index_num3').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+                    } else if (mouseX > 585 & mouseX < 615 & mouseY > 442 & mouseY < 472){
+                        fill(255);
+                        ellipse(600,457,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 서대문구의 나들이 지수는', 95,105);
+                        if ($('#index_num4').text()=='4' || $('#index_num4').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num4').text()=='1' || $('#index_num4').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+
+                    } else if (mouseX > 483 & mouseX < 513 & mouseY > 504 & mouseY < 534){
+                        fill(255);
+                        ellipse(498,519,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 마포구의 나들이 지수는', 95,105);
+                        if ($('#index_num5').text()=='4' || $('#index_num5').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num5').text()=='1' || $('#index_num5').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+
+                    } else if (mouseX > 1047 & mouseX < 1077 & mouseY > 540 & mouseY < 570){
+                        fill(255);
+                        ellipse(1062,555,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 광진구의 나들이 지수는', 95,105);
+                        if ($('#index_num6').text()=='4' || $('#index_num6').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num6').text()=='1' || $('#index_num6').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+
+                    } else if (mouseX > 900 & mouseX < 930 & mouseY > 517 & mouseY < 547){
+                        fill(255);
+                        ellipse(915,532,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 성동구의 나들이 지수는', 95,105);
+                        if ($('#index_num7').text()=='4' || $('#index_num7').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num7').text()=='1' || $('#index_num7').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+
+                    } else if (mouseX > 1040 & mouseX < 1070 & mouseY > 374 & mouseY < 404){
+                        fill(255);
+                        ellipse(1055,389,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 중랑구의 나들이 지수는', 95,105);
+                        if ($('#index_num8').text()=='4' || $('#index_num8').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num8').text()=='1' || $('#index_num8').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+
+                    } else if (mouseX > 938 & mouseX < 968 & mouseY > 428 & mouseY < 458){
+                        fill(255);
+                        ellipse(953,443,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 동대문구의 나들이 지수는', 95,105);
+                        if ($('#index_num9').text()=='4' || $('#index_num9').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num9').text()=='1' || $('#index_num9').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+
+                    } else if (mouseX > 839 & mouseX < 869 & mouseY > 373 & mouseY < 403){
+                        fill(255);
+                        ellipse(854,388,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 성북구의 나들이 지수는', 95,105);
+                        if ($('#index_num10').text()=='4' || $('#index_num10').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num10').text()=='1' || $('#index_num10').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+
+                    } else if (mouseX > 865 & mouseX < 895 & mouseY > 137 & mouseY < 167){
+                        fill(255);
+                        ellipse(880,152,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 도봉구의 나들이 지수는', 95,105);
+                        if ($('#index_num11').text()=='4' || $('#index_num11').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num11').text()=='1' || $('#index_num11').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+
+                    } else if (mouseX > 800 & mouseX < 830 & mouseY > 240 & mouseY < 270){
+                        fill(255);
+                        ellipse(815,255,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 강북구의 나들이 지수는', 95,105);
+                        if ($('#index_num12').text()=='4' || $('#index_num12').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num12').text()=='1' || $('#index_num12').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+
+                    } else if (mouseX > 1009 & mouseX < 1039 & mouseY > 228 & mouseY < 258){
+                        fill(255);
+                        ellipse(1024,243,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 노원구의 나들이 지수는', 95,105);
+                        if ($('#index_num13').text()=='4' || $('#index_num13').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num13').text()=='1' || $('#index_num13').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+
+                    } else if (mouseX > 226 & mouseX < 256 & mouseY > 496 & mouseY < 526){
+                        fill(255);
+                        ellipse(241,511,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 강서구의 나들이 지수는', 95,105);
+                        if ($('#index_num14').text()=='4' || $('#index_num14').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num14').text()=='1' || $('#index_num14').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+
+                    } else if (mouseX > 297 & mouseX < 327 & mouseY > 707 & mouseY < 737){
+                        fill(255);
+                        ellipse(312,722,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 구로구의 나들이 지수는', 95,105);
+                        if ($('#index_num15').text()=='4' || $('#index_num15').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num15').text()=='1' || $('#index_num15').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+
+                    } else if (mouseX > 494 & mouseX < 524 & mouseY > 628 & mouseY < 658){
+                        fill(255);
+                        ellipse(509,643,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 영등포구의 나들이 지수는', 95,105);
+                        if ($('#index_num16').text()=='4' || $('#index_num16').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num16').text()=='1' || $('#index_num16').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+
+                    } else if (mouseX > 608 & mouseX < 638 & mouseY > 798 & mouseY < 828){
+                        fill(255);
+                        ellipse(623,813,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 관악구의 나들이 지수는', 95,105);
+                        if ($('#index_num17').text()=='4' || $('#index_num17').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num17').text()=='1' || $('#index_num17').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+
+                    } else if (mouseX > 324 & mouseX < 354 & mouseY > 627 & mouseY < 657){
+                        fill(255);
+                        ellipse(338,642,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 양천구의 나들이 지수는', 95,105);
+                        if ($('#index_num18').text()=='4' || $('#index_num18').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num18').text()=='1' || $('#index_num18').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+
+                    } else if (mouseX > 968 & mouseX < 998 & mouseY > 721 & mouseY < 751){
+                        fill(255);
+                        ellipse(983,736,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 강남구의 나들이 지수는', 95,105);
+                        if ($('#index_num19').text()=='4' || $('#index_num19').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num19').text()=='1' || $('#index_num19').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+
+                    } else if (mouseX > 812 & mouseX < 842 & mouseY > 743 & mouseY < 773){
+                        fill(255);
+                        ellipse(827,758,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 서초구의 나들이 지수는', 95,105);
+                        if ($('#index_num20').text()=='4' || $('#index_num20').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num20').text()=='1' || $('#index_num20').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+
+                    } else if (mouseX > 1136 & mouseX < 1166 & mouseY > 679 & mouseY < 709){
+                        fill(255);
+                        ellipse(1151,694,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 송파구의 나들이 지수는', 95,105);
+                        if ($('#index_num21').text()=='4' || $('#index_num21').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num21').text()=='1' || $('#index_num21').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+
+                    } else if (mouseX > 1216 & mouseX < 1246 & mouseY > 526 & mouseY < 556){
+                        fill(255);
+                        ellipse(1231,541,20,20);
+                        fill(0);
+                        textSize(45);
+                        text('현재 강동구의 나들이 지수는', 95,105);
+                        if ($('#index_num22').text()=='4' || $('#index_num22').text()=='3') {
+                            textSize(80);
+                            fill(0,0,255);
+                            text('좋음', 95, 220);
+                        } else if ($('#index_num22').text()=='1' || $('#index_num22').text()=='0') {
+                            textSize(80);
+                            fill(255,0,0);
+                            text('나쁨', 95, 220);
+                        } else {
+                            textSize(80);
+                            fill(0);
+                            text('보통', 95, 220);
+                        }
+
+                    }
+                }
+     </script>
+
+</head>
+
+<body>
+    <h1 class="header">If Covid is None : 미리 준비하는 당신의 나들이</h1>
+
+    <hr/>
+
+    <div class="question-box">
+        <h2 class ='subtitle'>서울시 OpenAPI 활용</h2>
+        <p class = 'description'>나들이 지수 = 강수량 + 미세먼지 + 교통량</p>
+        <p class = 'description'>버튼 클릭 시마다 구 이름을 key 값으로, 최신의 데이터를 로드해 나들이 지수를 산출합니다.</p>
+        <p class = 'description'>강수량이 1000인 행은 서울시에서 업데이트하지 않은 데이터입니다. </p>
+        <br>
+        <div id = 'seoul'></div>
+        <br>
+        <div>
+            <button  type="button" class="btn btn-primary" onclick="showMiseInfo() ; showRainInfo(); showTrafficInfo()">업데이트</button>
+            <button type="button" class="btn btn-primary" onclick="showIndex()">나들이 지수 산출</button>
+            <button type="button" class="btn btn-primary" id = 'openClose' onclick="hideData()">차트 닫기</button>
+        </div>
+
+        <br>
+        <br>
+        <div class="chart">
+            <table style="border-collapse:collapse">
+                <thead>
+                <tr>
+                    <td>구 이름</td>
+                    <td>미세먼지(PM10)</td>
+                    <td>초미세먼지(PM25)</td>
+                </tr>
+                </thead>
+                <tbody class = 'realData' id="bike-info">
+                </tbody>
+            </table>
+            <table>
+                <thead>
+                <tr>
+                    <td>강수량</td>
+                </tr>
+                </thead>
+                <tbody id="rain-info" class = 'realData'>
+                </tbody>
+            </table>
+            <table>
+                <thead>
+                <tr>
+                    <td>교통량</td>
+                </tr>
+                </thead>
+                <tbody id="traffic-info" class = 'realData'>
+                </tbody>
+            </table>
+            <table>
+                <thead>
+                <tr>
+                    <td>나들이 지수</td>
+                </tr>
+                </thead>
+                <tbody id="index-info" class = 'realData'>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>
